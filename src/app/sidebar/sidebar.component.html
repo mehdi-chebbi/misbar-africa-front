@@ -1,0 +1,23 @@
+<div class="sidebar" [class.closed]="!open">
+  <nav class="tabs-nav">
+    <button
+      *ngFor="let tab of tabs"
+      (click)="setActiveTab(tab.id)"
+      [class.active]="activeTab === tab.id"
+      [title]="tab.label"
+    >
+      {{ tab.label }}
+      <span *ngIf="activeTab === tab.id" class="active-indicator"></span>
+    </button>
+  </nav>
+
+  <div class="content-area">
+    <h3>{{ activeTabLabel }}</h3>
+    <ng-container [ngSwitch]="activeTab">
+      <app-base-map *ngSwitchCase="'baseMap'"></app-base-map>
+      <app-ogc-view *ngSwitchCase="'ogcView'"></app-ogc-view>
+      <app-statistiques *ngSwitchCase="'statistiques'"></app-statistiques>
+    </ng-container>
+  </div>
+</div>
+

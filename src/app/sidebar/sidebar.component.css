@@ -1,0 +1,57 @@
+.sidebar {
+  position: fixed;
+  top: 64px; /* below navbar */
+  left: 0;
+  width: 420px;
+  height: calc(100vh - 64px);
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 2px 0 24px rgba(0,0,0,0.12);
+  border-right: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  z-index: 900;
+}
+
+/* fixed panel: ignore closed state */
+.sidebar.closed { transform: none; opacity: 1; }
+
+.tabs-nav {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: linear-gradient(180deg, #f9fafb, #f3f4f6);
+}
+
+.tabs-nav button {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabs-nav button:hover {
+  background: #f8fafc;
+}
+
+.tabs-nav button.active {
+  background: #e8f1ff;
+  color: #115293;
+  box-shadow: inset 0 0 0 1px rgba(17,82,147,0.25);
+}
+
+.tabs-nav button .active-indicator { display: none; }
+
+.content-area {
+  flex: 1;
+  padding: 14px;
+  overflow: auto;
+  background: #ffffff;
+}
+
+/* remove floating toggle entirely */
+.toggle-btn { display: none; }

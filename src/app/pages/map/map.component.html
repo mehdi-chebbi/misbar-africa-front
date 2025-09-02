@@ -1,0 +1,53 @@
+<div class="map-page">
+  <div id="map">
+    <div class="map-status" *ngIf="statusText">{{ statusText }}</div>
+    <!-- Updated Metadata Box with date range -->
+    <div
+      class="metadata-box"
+      *ngIf="imageMetadata && imageMetadata.isVisible">
+      <div class="metadata-header">
+        <div class="header-content">
+          <div class="location-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </div>
+          <h3>{{ imageMetadata.areaName }}</h3>
+        </div>
+        <button class="close-btn" (click)="hideMetadata()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="metadata-content">
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <div class="item-label">Date Range</div>
+            <div class="item-value date-range">
+              <div class="date-start">{{ imageMetadata.startDate }}</div>
+              <div class="date-separator">to</div>
+              <div class="date-end">{{ imageMetadata.endDate }}</div>
+            </div>
+          </div>
+          <div class="metadata-item">
+            <div class="item-label">Layer</div>
+            <div class="item-value layer">{{ imageMetadata.layer }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-actions">
+        <button class="clear-btn" (click)="clearImageOverlay()">
+          <span>Remove Image</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <app-sidebar></app-sidebar>
+</div>

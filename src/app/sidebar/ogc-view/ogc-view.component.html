@@ -1,0 +1,78 @@
+<h3>Pick Date Range</h3>
+<div style="display: flex; gap: 12px; width: 100%; flex-wrap: wrap;">
+  <mat-form-field appearance="fill" style="flex: 1; min-width: 180px;" (click)="startPicker.open()">
+    <mat-label>Start Date</mat-label>
+    <input matInput
+           [matDatepicker]="startPicker"
+           [(ngModel)]="startDate"
+           [max]="maxDate"
+           readonly />
+    <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+    <mat-datepicker #startPicker></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" style="flex: 1; min-width: 180px;" (click)="endPicker.open()">
+    <mat-label>End Date</mat-label>
+    <input matInput
+           [matDatepicker]="endPicker"
+           [(ngModel)]="endDate"
+           [min]="startDate"
+           [max]="maxDate"
+           readonly />
+    <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+    <mat-datepicker #endPicker></mat-datepicker>
+  </mat-form-field>
+</div>
+
+<div *ngIf="startDate && endDate">
+  <strong>Selected Date Range:</strong>
+  <p>{{ startDate | date:'mediumDate' }} - {{ endDate | date:'mediumDate' }}</p>
+</div>
+
+<h3>Layer Settings</h3>
+<div style="width: 100%; max-width: 320px;">
+  <mat-form-field appearance="fill" style="min-width: 200px;">
+    <mat-label>Select Layer</mat-label>
+    <mat-select [(ngModel)]="selectedLayer">
+      <mat-option *ngFor="let layer of layers" [value]="layer">
+        {{ layer }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<h3>Cloud Percentage</h3>
+<div style="width: 100%; max-width: 320px;">
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Cloud %</mat-label>
+    <input matInput type="number" [(ngModel)]="cloud_percentage" min="0" max="100" step="1" placeholder="0 - 100" />
+  </mat-form-field>
+</div>
+
+<!-- Submit button row -->
+<div style="width: 100%; display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px;">
+  <button mat-raised-button color="primary" (click)="onSubmit()">
+    Submit
+  </button>
+</div>
+
+<!-- Download section under Submit button -->
+<div style="margin-top: 16px; padding: 12px; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px;">
+  <h3 style="margin-top: 0">Download</h3>
+
+  <mat-form-field appearance="fill" style="width: 100%; margin-bottom: 8px;">
+    <mat-label>Output Format</mat-label>
+    <mat-select [(ngModel)]="selectedFormat">
+      <mat-option *ngFor="let format of formats" [value]="format">
+        {{ format }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button mat-raised-button color="accent"
+          (click)="downloadData()"
+          style="width: 100%"
+          [disabled]="downloading">
+    Download
+  </button>
+</div>
