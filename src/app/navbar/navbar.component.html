@@ -2,8 +2,56 @@
   <div class="brand">
     <img src="https://www.oss-online.org/sites/default/files/logo-h.png" alt="Logo" />
   </div>
+
   <ul class="links">
     <li><a routerLink="/map" routerLinkActive="active">Map</a></li>
     <li><a routerLink="/about" routerLinkActive="active">About</a></li>
+
+    <!-- Admin Panel Link (only for admin users) -->
+    <li *ngIf="isAdmin">
+      <a routerLink="/admin" routerLinkActive="active">Admin Panel</a>
+    </li>
   </ul>
+
+  <div class="auth-section">
+    <!-- Show for unauthenticated users -->
+    <div *ngIf="!isAuthenticated" class="auth-buttons">
+      <button mat-button routerLink="/login" class="login-btn">Login</button>
+      <button mat-raised-button routerLink="/register" color="primary" class="register-btn">Register</button>
+    </div>
+
+    <!-- Show for authenticated users -->
+    <div *ngIf="isAuthenticated" class="user-menu">
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-btn">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
+        <mat-menu-item class="user-email" disabled>
+          <span class="email-text">{{ currentUser?.email }}</span>
+          <small class="role-badge">{{ currentUser?.role }}</small>
+        </mat-menu-item>
+
+        <mat-divider></mat-divider>
+
+        <mat-menu-item (click)="navigateToProfile()">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </mat-menu-item>
+
+        <!-- Admin Panel Menu Item -->
+        <mat-menu-item *ngIf="isAdmin" (click)="navigateToAdmin()">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Admin Panel</span>
+        </mat-menu-item>
+
+        <mat-divider></mat-divider>
+
+        <mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </mat-menu-item>
+      </mat-menu>
+    </div>
+  </div>
 </nav>
