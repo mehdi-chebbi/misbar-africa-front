@@ -1,0 +1,126 @@
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title class="register-title">Register for Misbar Africa</mat-card-title>
+      <mat-card-subtitle>Create your account to access full features</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput
+                 type="email"
+                 placeholder="Enter your email"
+                 formControlName="email"
+                 [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
+                 aria-describedby="email-error">
+          <mat-error id="email-error" *ngIf="emailControl?.invalid && emailControl?.touched">
+            <span *ngIf="emailControl?.errors?.['required']">Email is required</span>
+            <span *ngIf="emailControl?.errors?.['email']">Please enter a valid email</span>
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput
+                 [type]="hidePassword ? 'password' : 'text'"
+                 placeholder="Enter your password"
+                 formControlName="password"
+                 [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                 aria-describedby="password-error">
+          <button mat-icon-button
+                  matSuffix
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="'Hide password'"
+                  [attr.aria-pressed]="hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error id="password-error" *ngIf="passwordControl?.invalid && passwordControl?.touched">
+            <span *ngIf="passwordControl?.errors?.['required']">Password is required</span>
+            <span *ngIf="passwordControl?.errors?.['minlength']">Password must be at least 8 characters</span>
+            <span *ngIf="passwordControl?.errors?.['pattern']">
+              Password must include uppercase, lowercase, number and special character
+            </span>
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Confirm Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput
+                 [type]="hideConfirmPassword ? 'password' : 'text'"
+                 placeholder="Confirm your password"
+                 formControlName="confirmPassword"
+                 [attr.aria-invalid]="(confirmPasswordControl?.invalid || passwordMismatch) && confirmPasswordControl?.touched"
+                 aria-describedby="confirm-password-error">
+          <button mat-icon-button
+                  matSuffix
+                  (click)="toggleConfirmPasswordVisibility()"
+                  [attr.aria-label]="'Hide confirm password'"
+                  [attr.aria-pressed]="hideConfirmPassword">
+            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error id="confirm-password-error" *ngIf="passwordMismatch && confirmPasswordControl?.touched">
+            Passwords do not match
+          </mat-error>
+          <mat-error id="confirm-password-error" *ngIf="confirmPasswordControl?.errors?.['required'] && confirmPasswordControl?.touched">
+            Please confirm your password
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Submit Button -->
+        <button mat-raised-button
+                type="submit"
+                color="primary"
+                class="full-width submit-btn"
+                [disabled]="registerForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Register</span>
+          <mat-spinner *ngIf="isLoading"
+                      diameter="20"
+                      color="accent">
+          </mat-spinner>
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="register-actions">
+      <div class="login-link">
+        <span>Already have an account? </span>
+        <a routerLink="/login" class="link">Login here</a>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Features Card -->
+  <mat-card class="features-card" *ngIf="!isLoading">
+    <mat-card-header>
+      <mat-card-title class="features-title">What You Get With Registration</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="feature-item">
+        <mat-icon class="feature-icon">map</mat-icon>
+        <div class="feature-text">
+          <h4>Full Map Access</h4>
+          <p>All base layers including satellite and topographic</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <mat-icon class="feature-icon">edit</mat-icon>
+        <div class="feature-text">
+          <h4>Drawing Tools</h4>
+          <p>Create polygons and mark areas of interest</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <mat-icon class="feature-icon">upload_file</mat-icon>
+        <div class="feature-text">
+          <h4>File Upload</h4>
+          <p>Import Shapefile, GeoJSON, and KML files</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
