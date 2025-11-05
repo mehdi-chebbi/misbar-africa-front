@@ -17,6 +17,7 @@ import { User } from '../../models/user.model';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
