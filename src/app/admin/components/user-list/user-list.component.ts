@@ -25,6 +25,7 @@ interface UserWithActions extends User {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatCardModule,
     MatButtonModule,
