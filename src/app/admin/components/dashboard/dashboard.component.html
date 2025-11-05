@@ -1,0 +1,149 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Admin Dashboard</h1>
+    <p class="dashboard-subtitle">System overview and management</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title class="stat-title">
+            <mat-icon class="stat-icon">people</mat-icon>
+            Total Users
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stat-value">{{ stats.totalUsers }}</div>
+          <div class="stat-change positive">+{{ stats.newUsersThisMonth }} this month</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title class="stat-title">
+            <mat-icon class="stat-icon">person_check</mat-icon>
+            Active Users
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stat-value">{{ stats.activeUsers }}</div>
+          <div class="stat-change">{{ Math.round((stats.activeUsers / stats.totalUsers) * 100) }}% active rate</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title class="stat-title">
+            <mat-icon class="stat-icon">login</mat-icon>
+            Today's Logins
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stat-value">{{ stats.loginsToday }}</div>
+          <div class="stat-change">+12% from yesterday</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title class="stat-title">
+            <mat-icon class="stat-icon">speed</mat-icon>
+            System Performance
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stat-value">{{ systemHealth.performance }}%</div>
+          <mat-progress-bar mode="determinate" [value]="systemHealth.performance"></mat-progress-bar>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content-grid">
+      <!-- System Health -->
+      <mat-card class="health-card">
+        <mat-card-header>
+          <mat-card-title>System Health</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="health-items">
+            <div class="health-item">
+              <mat-icon class="health-icon healthy">check_circle</mat-icon>
+              <span>Database</span>
+              <span class="health-status healthy">Operational</span>
+            </div>
+            <div class="health-item">
+              <mat-icon class="health-icon healthy">check_circle</mat-icon>
+              <span>API Services</span>
+              <span class="health-status healthy">Operational</span>
+            </div>
+            <div class="health-item">
+              <mat-icon class="health-icon healthy">check_circle</mat-icon>
+              <span>Storage</span>
+              <span class="health-status healthy">Operational</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recent Activity -->
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <mat-card-title>Recent Activity</mat-card-title>
+          <button mat-icon-button routerLink="/admin/users">
+            <mat-icon>view_all</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="activity-list">
+            <div *ngFor="let activity of recentActivity" class="activity-item">
+              <div class="activity-icon">
+                <mat-icon [color]="getActionColor(activity.action)">
+                  {{ getActionIcon(activity.action) }}
+                </mat-icon>
+              </div>
+              <div class="activity-details">
+                <div class="activity-user">{{ activity.user }}</div>
+                <div class="activity-action">{{ activity.details }}</div>
+                <div class="activity-time">{{ formatDate(activity.timestamp) }}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <mat-card class="actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="actions-grid">
+          <button mat-raised-button routerLink="/admin/users" color="primary">
+            <mat-icon>people</mat-icon>
+            Manage Users
+          </button>
+          <button mat-raised-button routerLink="/map" color="accent">
+            <mat-icon>map</mat-icon>
+            View Map
+          </button>
+          <button mat-raised-button color="warn">
+            <mat-icon>settings</mat-icon>
+            System Settings
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
