@@ -52,7 +52,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor(
     private baseMapService: BaseMapService,
     private ogcService: OgcService,
-    private geometryService: GeometryService
+    private geometryService: GeometryService,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngAfterViewInit(): void {
