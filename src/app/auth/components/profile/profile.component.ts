@@ -117,4 +117,8 @@ export class ProfileComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/map']);
   }
+
+  logout(): void {
+    this.authService.logout();
+  }
 }
