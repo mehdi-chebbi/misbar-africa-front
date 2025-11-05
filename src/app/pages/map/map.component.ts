@@ -120,6 +120,17 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (urlLayer && this.baseMaps[urlLayer]) {
       this.currentBaseLayer = this.baseMaps[urlLayer];
       this.currentBaseName = urlLayer;
+    } else if (urlLayer && !this.authService.isAuthenticated() && urlLayer !== 'OpenStreetMap') {
+      // Guest user trying to access premium layer - show message and default to OpenStreetMap
+      this.snackBar.open(`Please register to access the ${urlLayer} layer`, 'Register', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      }).onAction().subscribe(() => {
+        this.router.navigate(['/register']);
+      });
+      this.currentBaseLayer = this.baseMaps['OpenStreetMap'];
+      this.currentBaseName = 'OpenStreetMap';
     } else {
       this.currentBaseLayer = this.baseMaps['OpenStreetMap'];
       this.currentBaseName = 'OpenStreetMap';
