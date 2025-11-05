@@ -138,6 +138,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this.currentBaseName = mapName;
         this.currentBaseLayer.addTo(this.map);
         this.updateUrlFromMap();
+      } else if (!this.authService.isAuthenticated() && mapName !== 'OpenStreetMap') {
+        // Show message for guests trying to access premium layers
+        this.snackBar.open('Please register to access premium map layers', 'Register', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        }).onAction().subscribe(() => {
+          this.router.navigate(['/register']);
+        });
       }
     });
 
