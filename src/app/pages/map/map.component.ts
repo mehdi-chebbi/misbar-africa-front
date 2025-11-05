@@ -7,6 +7,9 @@ import { OgcService, OgcParams } from '../../services/ogc.service';
 import { GeometryService } from '../../services/geometry.service';
 import { SidebarComponent } from '../../sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth/services/auth.service';
 
 // shapefile reader
 import shp from 'shpjs';
