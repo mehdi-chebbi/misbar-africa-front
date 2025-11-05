@@ -73,7 +73,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
 
     // Base layers
-    this.baseMaps = {
+    const allBaseMaps = {
       'NDVI': L.tileLayer.wms('https://sh.dataspace.copernicus.eu/ogc/wms/2e44e6fc-1f1c-4258-bd09-8a15c317f604', {
         layers: 'NDVI-L2A',
         format: 'image/png',
@@ -104,6 +104,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         crossOrigin: true,
       }),
     };
+
+    // Restrict base maps based on authentication status
+    this.baseMaps = this.authService.isAuthenticated()
+      ? allBaseMaps
+      : { 'OpenStreetMap': allBaseMaps['OpenStreetMap'] };
 
     // Initial base layer
     const qs = new URLSearchParams(window.location.search);
