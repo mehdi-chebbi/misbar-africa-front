@@ -147,19 +147,50 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-    const drawControl = new L.Control.Draw({
-      position: 'topright',
-      edit: { featureGroup: this.drawnItems },
-      draw: {
-        polygon: {},
-        marker: false,
-        polyline: false,
-        circle: false,
-        rectangle: false,
-        circlemarker: false,
-      },
-    });
-    this.map.addControl(drawControl);
+    // Only add drawing controls for authenticated users
+    if (this.authService.isAuthenticated()) {
+      const drawControl = new L.Control.Draw({
+        position: 'topright',
+        edit: { featureGroup: this.drawnItems },
+        draw: {
+          polygon: {},
+          marker: false,
+          polyline: false,
+          circle: false,
+          rectangle: false,
+          circlemarker: false,
+        },
+      });
+      this.map.addControl(drawControl);
+    } else {
+      // Add a disabled drawing control that prompts login
+      const DisabledDrawControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control disabled-control');
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Register to enable drawing tools';
+          button.innerHTML = '✏️';
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
+
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => {
+              this.snackBar.open('Please register to enable drawing tools', 'Login', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
+              }).onAction().subscribe(() => {
+                this.router.navigate(['/login']);
+              });
+            });
+
+          return container;
+        }
+      });
+      this.map.addControl(new DisabledDrawControl());
+    }
 
     // Add shapefile/geojson/KML upload control
     const UploadControl = (L.Control as any).extend({
