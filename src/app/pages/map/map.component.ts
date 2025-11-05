@@ -193,67 +193,97 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
 
     // Add shapefile/geojson/KML upload control
-    const UploadControl = (L.Control as any).extend({
-      options: { position: 'topright' },
-      onAdd: () => {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        const fileInput = L.DomUtil.create('input', '', container);
-        fileInput.type = 'file';
-        fileInput.accept = '.zip,.json,.geojson,.kml';
-        fileInput.style.display = 'none';
+    if (this.authService.isAuthenticated()) {
+      const UploadControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+          const fileInput = L.DomUtil.create('input', '', container);
+          fileInput.type = 'file';
+          fileInput.accept = '.zip,.json,.geojson,.kml';
+          fileInput.style.display = 'none';
 
-        const button = L.DomUtil.create('a', '', container);
-        button.href = '#';
-        button.title = 'Upload Shapefile (.zip), GeoJSON or KML';
-        button.innerHTML = '⬆️';
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Upload Shapefile (.zip), GeoJSON or KML';
+          button.innerHTML = '⬆️';
 
-        fileInput.addEventListener('change', async (e: any) => {
-          const file = e.target.files[0];
-          if (!file) return;
+          fileInput.addEventListener('change', async (e: any) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-          try {
-            let geojson: any;
+            try {
+              let geojson: any;
 
-            if (file.name.endsWith('.zip')) {
-              const arrayBuffer = await file.arrayBuffer();
-              geojson = await shp(arrayBuffer);
-            } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
-              const text = await file.text();
-              geojson = JSON.parse(text);
-            } else if (file.name.endsWith('.kml')) {
-              const text = await file.text();
-              const parser = new DOMParser();
-              const kmlDoc = parser.parseFromString(text, 'text/xml');
-              geojson = toGeoJSON.kml(kmlDoc as any);
-            } else {
-              alert('Unsupported file format. Please upload a .zip, .geojson/.json, or .kml file');
-              return;
+              if (file.name.endsWith('.zip')) {
+                const arrayBuffer = await file.arrayBuffer();
+                geojson = await shp(arrayBuffer);
+              } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+                const text = await file.text();
+                geojson = JSON.parse(text);
+              } else if (file.name.endsWith('.kml')) {
+                const text = await file.text();
+                const parser = new DOMParser();
+                const kmlDoc = parser.parseFromString(text, 'text/xml');
+                geojson = toGeoJSON.kml(kmlDoc as any);
+              } else {
+                alert('Unsupported file format. Please upload a .zip, .geojson/.json, or .kml file');
+                return;
+              }
+
+              this.drawnItems.clearLayers();
+              const layer = L.geoJSON(geojson).addTo(this.drawnItems);
+              this.map.fitBounds(layer.getBounds());
+
+              if (layer.getLayers().length > 0) {
+                const polygon = layer.getLayers()[0] as L.Polygon;
+                this.lastDrawnBounds = polygon.getBounds();
+                this.geometryService.setBounds(this.lastDrawnBounds);
+                this.geometryService.setPolygon(polygon);
+              }
+
+              console.log('File loaded as GeoJSON:', geojson);
+            } catch (err) {
+              console.error('Failed to read file:', err);
             }
+          });
 
-            this.drawnItems.clearLayers();
-            const layer = L.geoJSON(geojson).addTo(this.drawnItems);
-            this.map.fitBounds(layer.getBounds());
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => fileInput.click());
 
-            if (layer.getLayers().length > 0) {
-              const polygon = layer.getLayers()[0] as L.Polygon;
-              this.lastDrawnBounds = polygon.getBounds();
-              this.geometryService.setBounds(this.lastDrawnBounds);
-              this.geometryService.setPolygon(polygon);
-            }
+          return container;
+        }
+      });
+      this.map.addControl(new UploadControl());
+    } else {
+      // Add a disabled upload control that prompts login
+      const DisabledUploadControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control disabled-control');
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Login to upload files';
+          button.innerHTML = '⬆️';
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
 
-            console.log('File loaded as GeoJSON:', geojson);
-          } catch (err) {
-            console.error('Failed to read file:', err);
-          }
-        });
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => {
+              this.snackBar.open('Please login to upload files', 'Login', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
+              }).onAction().subscribe(() => {
+                this.router.navigate(['/login']);
+              });
+            });
 
-        L.DomEvent.on(button, 'click', L.DomEvent.stop)
-          .on(button, 'click', () => fileInput.click());
-
-        return container;
-      }
-    });
-    this.map.addControl(new UploadControl());
+          return container;
+        }
+      });
+      this.map.addControl(new DisabledUploadControl());
+    }
 
     // Scale
     L.control.scale({ position: 'bottomleft', imperial: false }).addTo(this.map);
