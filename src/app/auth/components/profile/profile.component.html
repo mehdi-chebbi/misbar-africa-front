@@ -1,0 +1,152 @@
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="page-title">Profile</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Updating profile...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading && currentUser" class="profile-content">
+    <!-- User Information Card -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <div class="avatar-header">
+          <div class="avatar">
+            <mat-icon class="avatar-icon">account_circle</mat-icon>
+          </div>
+          <div class="header-text">
+            <mat-card-title>User Information</mat-card-title>
+            <mat-card-subtitle>Your account details</mat-card-subtitle>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon class="info-icon">email</mat-icon>
+            <div class="info-details">
+              <label>Email</label>
+              <span>{{ currentUser.email }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">admin_panel_settings</mat-icon>
+            <div class="info-details">
+              <label>Role</label>
+              <span class="role-badge">{{ currentUser.role }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">calendar_today</mat-icon>
+            <div class="info-details">
+              <label>Member Since</label>
+              <span>{{ formatDate(currentUser.created_at) }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="currentUser.last_login">
+            <mat-icon class="info-icon">login</mat-icon>
+            <div class="info-details">
+              <label>Last Login</label>
+              <span>{{ formatDate(currentUser.last_login) }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">check_circle</mat-icon>
+            <div class="info-details">
+              <label>Account Status</label>
+              <span class="status-badge active">Active</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Change Password Card -->
+    <mat-card class="password-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>vpn_key</mat-icon>
+          Change Password
+        </mat-card-title>
+        <mat-card-subtitle>Update your account password</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form class="password-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>New Password</mat-label>
+            <input matInput
+                   type="password"
+                   [(ngModel)]="newPassword"
+                   placeholder="Enter new password"
+                   name="newPassword">
+            <mat-hint>Minimum 8 characters with uppercase, lowercase, number, and special character</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput
+                   type="password"
+                   [(ngModel)]="confirmPassword"
+                   placeholder="Confirm new password"
+                   name="confirmPassword">
+          </mat-form-field>
+
+          <div class="password-actions">
+            <button mat-raised-button
+                    color="primary"
+                    type="button"
+                    (click)="updatePassword()"
+                    [disabled]="isLoading || !newPassword || !confirmPassword">
+              <mat-icon>update</mat-icon>
+              Update Password
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Account Actions Card -->
+    <mat-card class="actions-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Account Actions
+        </mat-card-title>
+        <mat-card-subtitle>Manage your account settings</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="actions-grid">
+          <button mat-stroked-button class="action-button" (click)="goBack()">
+            <mat-icon>map</mat-icon>
+            <span>Back to Map</span>
+          </button>
+
+          <button mat-stroked-button class="action-button" routerLink="/admin" *ngIf="currentUser.role === 'admin'">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>Admin Panel</span>
+          </button>
+
+          <button mat-stroked-button color="warn" class="action-button" (click)="authService.logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
