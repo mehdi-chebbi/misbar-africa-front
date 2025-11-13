@@ -1,0 +1,88 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title class="login-title">Login to Misbar Africa</mat-card-title>
+      <mat-card-subtitle>Access the mapping platform</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput
+                 type="email"
+                 placeholder="Enter your email"
+                 formControlName="email"
+                 [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
+                 aria-describedby="email-error">
+          <mat-error id="email-error" *ngIf="emailControl?.invalid && emailControl?.touched">
+            <span *ngIf="emailControl?.errors?.['required']">Email is required</span>
+            <span *ngIf="emailControl?.errors?.['email']">Please enter a valid email</span>
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput
+                 [type]="hidePassword ? 'password' : 'text'"
+                 placeholder="Enter your password"
+                 formControlName="password"
+                 [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                 aria-describedby="password-error">
+          <button mat-icon-button
+                  matSuffix
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="'Hide password'"
+                  [attr.aria-pressed]="hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error id="password-error" *ngIf="passwordControl?.invalid && passwordControl?.touched">
+            <span *ngIf="passwordControl?.errors?.['required']">Password is required</span>
+            <span *ngIf="passwordControl?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Submit Button -->
+        <button mat-raised-button
+                type="submit"
+                color="primary"
+                class="full-width submit-btn"
+                [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Login</span>
+          <mat-spinner *ngIf="isLoading"
+                      diameter="20"
+                      color="accent">
+          </mat-spinner>
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="login-actions">
+      <div class="register-link">
+        <span>Don't have an account? </span>
+        <a routerLink="/register" class="link">Register here</a>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!-- Demo Credentials Card -->
+<mat-card class="demo-credentials" *ngIf="!isLoading">
+  <mat-card-header>
+    <mat-card-title class="demo-title">Demo Credentials</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="demo-section">
+      <h4>Admin User:</h4>
+      <p>Email: admin@example.com</p>
+      <p>Password: admin123</p>
+    </div>
+    <div class="demo-section">
+      <h4>Regular User:</h4>
+      <p>Email: user@example.com</p>
+      <p>Password: user123</p>
+    </div>
+  </mat-card-content>
+</mat-card>

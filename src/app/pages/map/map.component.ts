@@ -7,6 +7,9 @@ import { OgcService, OgcParams } from '../../services/ogc.service';
 import { GeometryService } from '../../services/geometry.service';
 import { SidebarComponent } from '../../sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth/services/auth.service';
 
 // shapefile reader
 import shp from 'shpjs';
@@ -49,7 +52,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor(
     private baseMapService: BaseMapService,
     private ogcService: OgcService,
-    private geometryService: GeometryService
+    private geometryService: GeometryService,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngAfterViewInit(): void {
@@ -67,7 +73,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
 
     // Base layers
-    this.baseMaps = {
+    const allBaseMaps = {
       'NDVI': L.tileLayer.wms('https://sh.dataspace.copernicus.eu/ogc/wms/2e44e6fc-1f1c-4258-bd09-8a15c317f604', {
         layers: 'NDVI-L2A',
         format: 'image/png',
@@ -99,6 +105,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }),
     };
 
+    // Restrict base maps based on authentication status
+    this.baseMaps = this.authService.isAuthenticated()
+      ? allBaseMaps
+      : { 'OpenStreetMap': allBaseMaps['OpenStreetMap'] };
+
     // Initial base layer
     const qs = new URLSearchParams(window.location.search);
     const urlLayer = qs.get('layer');
@@ -109,6 +120,17 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (urlLayer && this.baseMaps[urlLayer]) {
       this.currentBaseLayer = this.baseMaps[urlLayer];
       this.currentBaseName = urlLayer;
+    } else if (urlLayer && !this.authService.isAuthenticated() && urlLayer !== 'OpenStreetMap') {
+      // Guest user trying to access premium layer - show message and default to OpenStreetMap
+      this.snackBar.open(`Please register to access the ${urlLayer} layer`, 'Register', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      }).onAction().subscribe(() => {
+        this.router.navigate(['/register']);
+      });
+      this.currentBaseLayer = this.baseMaps['OpenStreetMap'];
+      this.currentBaseName = 'OpenStreetMap';
     } else {
       this.currentBaseLayer = this.baseMaps['OpenStreetMap'];
       this.currentBaseName = 'OpenStreetMap';
@@ -127,6 +149,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this.currentBaseName = mapName;
         this.currentBaseLayer.addTo(this.map);
         this.updateUrlFromMap();
+      } else if (!this.authService.isAuthenticated() && mapName !== 'OpenStreetMap') {
+        // Show message for guests trying to access premium layers
+        this.snackBar.open('Please register to access premium map layers', 'Register', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        }).onAction().subscribe(() => {
+          this.router.navigate(['/register']);
+        });
       }
     });
 
@@ -136,82 +167,143 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-    const drawControl = new L.Control.Draw({
-      position: 'topright',
-      edit: { featureGroup: this.drawnItems },
-      draw: {
-        polygon: {},
-        marker: false,
-        polyline: false,
-        circle: false,
-        rectangle: false,
-        circlemarker: false,
-      },
-    });
-    this.map.addControl(drawControl);
+    // Only add drawing controls for authenticated users
+    if (this.authService.isAuthenticated()) {
+      const drawControl = new L.Control.Draw({
+        position: 'topright',
+        edit: { featureGroup: this.drawnItems },
+        draw: {
+          polygon: {},
+          marker: false,
+          polyline: false,
+          circle: false,
+          rectangle: false,
+          circlemarker: false,
+        },
+      });
+      this.map.addControl(drawControl);
+    } else {
+      // Add a disabled drawing control that prompts login
+      const DisabledDrawControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control disabled-control');
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Register to enable drawing tools';
+          button.innerHTML = '✏️';
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
+
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => {
+              this.snackBar.open('Please register to enable drawing tools', 'Login', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
+              }).onAction().subscribe(() => {
+                this.router.navigate(['/login']);
+              });
+            });
+
+          return container;
+        }
+      });
+      this.map.addControl(new DisabledDrawControl());
+    }
 
     // Add shapefile/geojson/KML upload control
-    const UploadControl = (L.Control as any).extend({
-      options: { position: 'topright' },
-      onAdd: () => {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        const fileInput = L.DomUtil.create('input', '', container);
-        fileInput.type = 'file';
-        fileInput.accept = '.zip,.json,.geojson,.kml';
-        fileInput.style.display = 'none';
+    if (this.authService.isAuthenticated()) {
+      const UploadControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+          const fileInput = L.DomUtil.create('input', '', container);
+          fileInput.type = 'file';
+          fileInput.accept = '.zip,.json,.geojson,.kml';
+          fileInput.style.display = 'none';
 
-        const button = L.DomUtil.create('a', '', container);
-        button.href = '#';
-        button.title = 'Upload Shapefile (.zip), GeoJSON or KML';
-        button.innerHTML = '⬆️';
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Upload Shapefile (.zip), GeoJSON or KML';
+          button.innerHTML = '⬆️';
 
-        fileInput.addEventListener('change', async (e: any) => {
-          const file = e.target.files[0];
-          if (!file) return;
+          fileInput.addEventListener('change', async (e: any) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-          try {
-            let geojson: any;
+            try {
+              let geojson: any;
 
-            if (file.name.endsWith('.zip')) {
-              const arrayBuffer = await file.arrayBuffer();
-              geojson = await shp(arrayBuffer);
-            } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
-              const text = await file.text();
-              geojson = JSON.parse(text);
-            } else if (file.name.endsWith('.kml')) {
-              const text = await file.text();
-              const parser = new DOMParser();
-              const kmlDoc = parser.parseFromString(text, 'text/xml');
-              geojson = toGeoJSON.kml(kmlDoc as any);
-            } else {
-              alert('Unsupported file format. Please upload a .zip, .geojson/.json, or .kml file');
-              return;
+              if (file.name.endsWith('.zip')) {
+                const arrayBuffer = await file.arrayBuffer();
+                geojson = await shp(arrayBuffer);
+              } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+                const text = await file.text();
+                geojson = JSON.parse(text);
+              } else if (file.name.endsWith('.kml')) {
+                const text = await file.text();
+                const parser = new DOMParser();
+                const kmlDoc = parser.parseFromString(text, 'text/xml');
+                geojson = toGeoJSON.kml(kmlDoc as any);
+              } else {
+                alert('Unsupported file format. Please upload a .zip, .geojson/.json, or .kml file');
+                return;
+              }
+
+              this.drawnItems.clearLayers();
+              const layer = L.geoJSON(geojson).addTo(this.drawnItems);
+              this.map.fitBounds(layer.getBounds());
+
+              if (layer.getLayers().length > 0) {
+                const polygon = layer.getLayers()[0] as L.Polygon;
+                this.lastDrawnBounds = polygon.getBounds();
+                this.geometryService.setBounds(this.lastDrawnBounds);
+                this.geometryService.setPolygon(polygon);
+              }
+
+              console.log('File loaded as GeoJSON:', geojson);
+            } catch (err) {
+              console.error('Failed to read file:', err);
             }
+          });
 
-            this.drawnItems.clearLayers();
-            const layer = L.geoJSON(geojson).addTo(this.drawnItems);
-            this.map.fitBounds(layer.getBounds());
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => fileInput.click());
 
-            if (layer.getLayers().length > 0) {
-              const polygon = layer.getLayers()[0] as L.Polygon;
-              this.lastDrawnBounds = polygon.getBounds();
-              this.geometryService.setBounds(this.lastDrawnBounds);
-              this.geometryService.setPolygon(polygon);
-            }
+          return container;
+        }
+      });
+      this.map.addControl(new UploadControl());
+    } else {
+      // Add a disabled upload control that prompts login
+      const DisabledUploadControl = (L.Control as any).extend({
+        options: { position: 'topright' },
+        onAdd: () => {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control disabled-control');
+          const button = L.DomUtil.create('a', '', container);
+          button.href = '#';
+          button.title = 'Login to upload files';
+          button.innerHTML = '⬆️';
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
 
-            console.log('File loaded as GeoJSON:', geojson);
-          } catch (err) {
-            console.error('Failed to read file:', err);
-          }
-        });
+          L.DomEvent.on(button, 'click', L.DomEvent.stop)
+            .on(button, 'click', () => {
+              this.snackBar.open('Please login to upload files', 'Login', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
+              }).onAction().subscribe(() => {
+                this.router.navigate(['/login']);
+              });
+            });
 
-        L.DomEvent.on(button, 'click', L.DomEvent.stop)
-          .on(button, 'click', () => fileInput.click());
-
-        return container;
-      }
-    });
-    this.map.addControl(new UploadControl());
+          return container;
+        }
+      });
+      this.map.addControl(new DisabledUploadControl());
+    }
 
     // Scale
     L.control.scale({ position: 'bottomleft', imperial: false }).addTo(this.map);
